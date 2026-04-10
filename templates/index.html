@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CEDD Contracts Awarded Summary</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .last-update {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .chart-container {
+            text-align: center;
+        }
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+    <script>
+        // Refresh the page every 30 minutes to show the updated chart
+        setTimeout(function(){
+           window.location.reload();
+        }, 30 * 60 * 1000);
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="mb-0">CEDD Contracts Awarded Summary (Past 6 Months)</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-12 text-center">
+                                <p class="last-update">Last Updated: <strong>{{ last_update }}</strong> (Next update in 30 minutes)</p>
+                            </div>
+                        </div>
+                        <div class="chart-container mb-4">
+                            <img src="/static/contract_summary_barchart.png?t={{ time() }}" alt="CEDD Contracts Barchart">
+                        </div>
+                        <div class="chart-container">
+                            <img src="/static/contract_summary_piechart.png?t={{ time() }}" alt="CEDD Contracts Piechart">
+                        </div>
+                    </div>
+                    <div class="card-footer text-center">
+                        <a href="/static/contract_summary.csv" class="btn btn-outline-success">Download CSV Data</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

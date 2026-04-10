@@ -1,0 +1,6 @@
+Flask
+Flask-APScheduler
+beautifulsoup4
+pandas
+matplotlib
+seaborn
