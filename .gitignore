@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+venv/
+ENV/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel/
+
+# Data (Optional: keep if you want initial data to be in git)
+# static/contract_summary.csv
+# static/tender_forecast.csv
+# static/*.png
+# static/*.txt

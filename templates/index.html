@@ -3,64 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CEDD Contracts Awarded Summary</title>
+    <title>Tender Summary & Forecast</title>
+    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- DataTables CSS -->
+    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f8f9fa;
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .container {
-            margin-top: 50px;
+            margin-top: 30px;
+            margin-bottom: 50px;
         }
         .card {
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        .card-header {
+            padding: 1.25rem;
+            border-bottom: none;
+        }
+        .card-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
         }
         .last-update {
-            font-size: 0.9rem;
-            color: #6c757d;
+            font-size: 0.85rem;
+            opacity: 0.8;
         }
         .chart-container {
             text-align: center;
+            padding: 1rem;
         }
         .chart-container img {
             max-width: 100%;
             height: auto;
+            border-radius: 8px;
+        }
+        .badge-hyd { background-color: #ffc107; color: #000; }
+        .badge-cedd { background-color: #0dcaf0; color: #fff; }
+        .table thead th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .forecast-desc {
+            max-width: 400px;
+            font-size: 0.88rem;
+            line-height: 1.4;
+        }
+        /* DataTables overrides */
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0.3em 0.8em;
+        }
+        .dataTables_filter input {
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 4px 10px;
         }
     </style>
-    <script>
-        // Refresh the page every 30 minutes to show the updated chart
-        setTimeout(function(){
-           window.location.reload();
-        }, 30 * 60 * 1000);
-    </script>
 </head>
 <body>
     <div class="container">
+        <!-- Dashboard Header -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h1 class="text-center fw-bold text-primary mb-1">Tender Dashboard</h1>
+                <p class="text-center text-muted">Real-time overview of CEDD/HyD contracts and forecasts</p>
+            </div>
+        </div>
+
+        <!-- Awarded Contracts Summary -->
         <div class="row">
             <div class="col-md-12">
                 <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="mb-0">CEDD Contracts Awarded Summary (Past 6 Months)</h2>
+                    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">Contracts Awarded (Past 6 Months)</h2>
+                        <div class="text-end">
+                            <div class="last-update">Last Updated: {{ last_update }}</div>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="row mb-4">
-                            <div class="col-md-12 text-center">
-                                <p class="last-update">Last Updated: <strong>{{ last_update }}</strong> (Next update in 30 minutes)</p>
+                        <div class="row align-items-center">
+                            <div class="col-lg-7 chart-container">
+                                <img src="/static/contract_summary_barchart.png?t={{ time() }}" alt="Barchart">
+                            </div>
+                            <div class="col-lg-5 chart-container">
+                                <img src="/static/contract_summary_piechart.png?t={{ time() }}" alt="Piechart">
                             </div>
                         </div>
-                        <div class="chart-container mb-4">
-                            <img src="/static/contract_summary_barchart.png?t={{ time() }}" alt="CEDD Contracts Barchart">
-                        </div>
-                        <div class="chart-container">
-                            <img src="/static/contract_summary_piechart.png?t={{ time() }}" alt="CEDD Contracts Piechart">
+                    </div>
+                    <div class="card-footer bg-white text-center py-3">
+                        <a href="/static/contract_summary.csv" class="btn btn-primary px-4">
+                            <i class="bi bi-download"></i> Download Awarded Data (CSV)
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Forecast of Invitations to Tender -->
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                        <h2 class="mb-0">Upcoming Tender Forecast</h2>
+                        <div class="text-end">
+                            <div class="last-update">Update: {{ last_forecast_update }}</div>
                         </div>
                     </div>
-                    <div class="card-footer text-center">
-                        <a href="/static/contract_summary.csv" class="btn btn-outline-success">Download CSV Data</a>
+                    <div class="card-body p-4">
+                        <div class="table-responsive">
+                            <table id="forecastTable" class="table table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th width="10%">Dept</th>
+                                        <th width="15%">Contract No</th>
+                                        <th width="55%">Tender Information</th>
+                                        <th width="20%">Probable Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for forecast in forecasts %}
+                                    <tr>
+                                        <td>
+                                            <span class="badge {{ 'badge-hyd' if forecast.Department == 'HyD' else 'badge-cedd' }}">
+                                                {{ forecast.Department }}
+                                            </span>
+                                        </td>
+                                        <td><code>{{ forecast['Contract No'] }}</code></td>
+                                        <td>
+                                            <div class="forecast-desc text-muted">
+                                                {{ forecast.Description }}
+                                            </div>
+                                        </td>
+                                        <td><span class="fw-bold text-dark">{{ forecast['Probable Date'] }}</span></td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            {% if not forecasts %}
+                            <div class="text-center py-5">
+                                <p class="text-muted mb-0">No forecast data available at the moment.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white text-center py-3">
+                        <a href="/static/tender_forecast.csv" class="btn btn-outline-dark px-4">
+                            Download Forecast (CSV)
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    
+    <script>
+        $(document).ready(function() {
+            $('#forecastTable').DataTable({
+                "pageLength": 10,
+                "order": [[3, "asc"]], // Sort by date initially
+                "language": {
+                    "search": "Filter tenders:",
+                    "lengthMenu": "Show _MENU_ entries"
+                },
+                "columnDefs": [
+                    { "orderable": true, "targets": [0, 1, 3] },
+                    { "orderable": false, "targets": 2 } // Disable sorting on description
+                ]
+            });
+        });
+
+        // Auto-refresh page every 30 minutes
+        setTimeout(function(){
+           window.location.reload();
+        }, 30 * 60 * 1000);
+    </script>
 </body>
 </html>
